@@ -8,9 +8,9 @@ namespace :passenger do
       end
       exit
     end
-    on roles(fetch(:passenger_roles)), in: fetch(:passenger_restart_runner), wait: fetch(:passenger_restart_wait), limit: fetch(:passenger_restart_limit) do
+    on roles(fetch(:passenger_roles)), in: fetch(:passenger_restart_runner), wait: fetch(:passenger_restart_wait), limit: fetch(:passenger_restart_limit) do |role|
       with fetch(:passenger_environment_variables) do
-        within(fetch(:passenger_in_gemfile, false) ? release_path : "") do
+        within(fetch(:passenger_in_gemfile, false) ? release_path(role) : "") do
           if restart_with_touch.nil?
             # 'passenger -v' may output one of the following depending on the version:
             # Phusion Passenger version x.x.x
@@ -22,8 +22,8 @@ namespace :passenger do
           end
 
           if restart_with_touch
-            execute :mkdir, '-p', release_path.join('tmp')
-            execute :touch, release_path.join('tmp/restart.txt')
+            execute :mkdir, '-p', release_path(role).join('tmp')
+            execute :touch, release_path(role).join('tmp/restart.txt')
           else
             restart_command = fetch(:passenger_restart_command).split(" ").collect(&:to_sym) << fetch(:passenger_restart_options)
             if fetch(:passenger_restart_with_sudo)
